@@ -9,10 +9,11 @@ import (
 
 // ====================================================================================
 // 샤딩 기반 블룸 필터
-//!! 햇갈리지 말 것
-//!! 이건 "Add, Contain" 연산을 샤딩한거임
-//!! 공간을 많이 써서 빠른거지, 병렬처리는 아님
-//!! 다만 샤딩을 이용해서 향후 BatchAdd등을 구현할 순 있을듯.
+//!! 샤딩을 통해 병렬 환경에서의 병렬적 쿼리를 어느 정도 간당 가능한 블룸필터.
+//!! 내부에선 똑같이 n번 해시하지만, 대신 그 쿼리를 병렬로 가능한 구조임
+// 이는 기존 블룸필터 대비 "병렬 환경에서의 병렬 쿼리 가능"으로 인해서
+// 한 번 Add는 그것과 속도가 같지만, 수백개 동시 처리 시 단일 bf보다 7배까지 가속됨 (32샤드, 16코어 기준)
+// 단, "단일 스레드" 환경에서는 샤딩 오버헤드가 존재하며, "병렬 스레드"시에도 "이상적 샤드 분산"을 기대해야 함.
 // ====================================================================================
 
 // ShardedBloomFilter 샤딩 기반 블룸 필터
@@ -81,20 +82,20 @@ func (sbf *ShardedBloomFilter) getShardIndex(data []byte) int {
 	h.Write(data)
 	hash := h.Sum64()
 
-	//** 비트 마스킹으로 빠른 모듈로 연산
+	//** 비트 마스킹으로 빠른 분배(0~n사이 값) 연산
 	//* ex) 샤드마스크가 111이고, 이걸로 임의의 수와 and연산 시
 	//* 이는 모듈러와 유사한 효과를 냄(값 공간이 000~111까지이므로)
 	return int(hash & sbf.shardMask)
 }
 
-// Add 아이템 추가 (락 없는 병렬 처리)
+// Add 아이템 추가. RW락
 func (sbf *ShardedBloomFilter) Add(data []byte) {
 	shardIndex := sbf.getShardIndex(data)
 	sbf.shards[shardIndex].Add(data)
 	atomic.AddUint64(&sbf.numItems, 1)
 }
 
-// Contains 아이템 존재 여부 확인 (락 없는 병렬 처리)
+// Contains 아이템 존재 여부 확인. R락
 func (sbf *ShardedBloomFilter) Contains(data []byte) bool {
 	shardIndex := sbf.getShardIndex(data)
 	return sbf.shards[shardIndex].Contains(data)

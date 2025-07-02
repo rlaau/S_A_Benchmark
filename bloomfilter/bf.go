@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"hash/fnv"
 	"math"
+	"sync"
 )
 
 // ====================================================================================
@@ -16,6 +17,8 @@ type BloomFilter struct {
 	numHash  uint
 	numItems uint64
 	hashSeed uint64
+	//* 샤드 블룸필터에 쓰기 위해서 일단 락 걸어놨음
+	lock sync.RWMutex
 }
 
 func NewBloomFilter(expectedItems uint64, falsePositiveRate float64) *BloomFilter {
@@ -59,6 +62,9 @@ func (bf *BloomFilter) hash(data []byte, i uint) uint64 {
 }
 
 func (bf *BloomFilter) Add(data []byte) {
+	bf.lock.Lock()         // ✅ 락 시작
+	defer bf.lock.Unlock() // ✅ 락 해제
+
 	for i := uint(0); i < bf.numHash; i++ {
 		pos := bf.hash(data, i)
 		wordIndex := pos / 64
@@ -69,6 +75,9 @@ func (bf *BloomFilter) Add(data []byte) {
 }
 
 func (bf *BloomFilter) Contains(data []byte) bool {
+	bf.lock.RLock()         // ✅ 읽기 락 시작
+	defer bf.lock.RUnlock() // ✅ 락 해제
+
 	for i := uint(0); i < bf.numHash; i++ {
 		pos := bf.hash(data, i)
 		wordIndex := pos / 64

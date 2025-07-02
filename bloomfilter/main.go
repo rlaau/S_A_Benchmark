@@ -15,7 +15,7 @@ func main() {
 	// 테스트 설정
 	expectedItems := uint64(10000000) // 1천만개
 	targetFPR := 0.001                // 0.1%
-	testCases := 10000000               // 1000만개 쿼리
+	testCases := 10000000             // 1000만개 쿼리
 
 	fmt.Printf("📋 테스트 설정:\n")
 	fmt.Printf("   - 데이터 크기: %s개\n", formatNumber(expectedItems))
@@ -53,7 +53,6 @@ func main() {
 	fmt.Println("\n💡 === 권장사항 ===")
 	if shardedResult.TotalOpsPerSec > basicResult.TotalOpsPerSec {
 		fmt.Println("✅ 대용량 데이터에서는 샤딩 블룸 필터를 사용하세요!")
-		fmt.Println("   - 락 경합 없는 진정한 병렬 처리")
 		fmt.Println("   - 예측 가능한 성능")
 		fmt.Println("   - 수평 확장 가능")
 	} else {
