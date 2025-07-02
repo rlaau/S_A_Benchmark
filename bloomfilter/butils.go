@@ -116,14 +116,11 @@ func testShardedBloomFilter(expectedItems uint64, targetFPR float64, testCases i
 	chunkSize := int(expectedItems) / numWorkers
 
 	var wg sync.WaitGroup
-	for i := 0; i < numWorkers; i++ {
+	for i := range numWorkers {
 		wg.Add(1)
 		go func(start int) {
 			defer wg.Done()
-			end := start + chunkSize
-			if end > int(expectedItems) {
-				end = int(expectedItems)
-			}
+			end := min(start+chunkSize, int(expectedItems))
 
 			for j := start; j < end; j++ {
 				sbf.Add(insertData[j])
@@ -140,14 +137,11 @@ func testShardedBloomFilter(expectedItems uint64, targetFPR float64, testCases i
 	var falsePositives int64
 	chunkSize = testCases / numWorkers
 
-	for i := 0; i < numWorkers; i++ {
+	for i := range numWorkers {
 		wg.Add(1)
 		go func(start int) {
 			defer wg.Done()
-			end := start + chunkSize
-			if end > testCases {
-				end = testCases
-			}
+			end := min(start+chunkSize, testCases)
 
 			localFP := 0
 			for j := start; j < end; j++ {
@@ -295,7 +289,6 @@ func comparePerformance(basic, sharded TestResult) {
 		fmt.Println("❌ 샤딩이 비효율적입니다.")
 	}
 }
-
 
 // 추가 함수들
 

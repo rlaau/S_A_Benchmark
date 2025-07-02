@@ -15,7 +15,7 @@ func main() {
 	// 테스트 설정
 	expectedItems := uint64(10000000) // 1천만개
 	targetFPR := 0.001                // 0.1%
-	testCases := 100000               // 10만개 쿼리
+	testCases := 10000000               // 1000만개 쿼리
 
 	fmt.Printf("📋 테스트 설정:\n")
 	fmt.Printf("   - 데이터 크기: %s개\n", formatNumber(expectedItems))
