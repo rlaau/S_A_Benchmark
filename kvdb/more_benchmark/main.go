@@ -33,10 +33,12 @@ type BenchmarkResult struct {
 	RandExistingReadTime       time.Duration
 	RandExistingMembershipTime time.Duration
 	NonExistentMembershipTime  time.Duration
+	// 캐시 테스트용 필드 추가
+	RandCachedReadTime       time.Duration
+	RandCachedMembershipTime time.Duration
 }
 
 func main() {
-	// --- 1. 데이터 생성 ---
 	fmt.Printf("%d개의 테스트 데이터를 생성합니다...\n", numItems)
 	existingKeys := make([][keySize]byte, numItems)
 	values := make([][]byte, numItems)
@@ -57,7 +59,6 @@ func main() {
 		binary.BigEndian.PutUint64(nonExistentKeys[i][:], uint64(numItems+i))
 	}
 
-	// --- 2. 벤치마크 실행 ---
 	bboltResult, err := runBboltBenchmark(existingKeys, values, latestExistingKeys, randExistingKeys, nonExistentKeys)
 	if err != nil {
 		log.Fatalf("bbolt 실패: %v", err)
@@ -71,7 +72,6 @@ func main() {
 		log.Fatalf("PebbleDB 실패: %v", err)
 	}
 
-	// --- 3. 결과 출력 ---
 	printResults([]BenchmarkResult{bboltResult, badgerResult, pebbleResult})
 }
 
@@ -101,8 +101,8 @@ func runBboltBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][keyS
 	db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketName))
 		c := b.Cursor()
+		// 2. 순차 (있는 데이터)
 		start = time.Now()
-		// bbolt는 Next()가 자동으로 마지막에서 멈추므로 카운터가 필요 없음
 		for k, v := c.Seek(latestKeys[0][:]); k != nil; k, v = c.Next() {
 			_ = v
 		}
@@ -112,6 +112,7 @@ func runBboltBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][keyS
 			_ = k
 		}
 		result.SeqExistingMembershipTime = time.Since(start)
+		// 3. 임의 (있는 데이터)
 		start = time.Now()
 		for _, key := range randKeys {
 			_ = b.Get(key[:])
@@ -123,18 +124,30 @@ func runBboltBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][keyS
 			}
 		}
 		result.RandExistingMembershipTime = time.Since(start)
+		// 4. 임의 (없는 데이터)
 		start = time.Now()
 		for _, key := range nonExistentKeys {
 			if b.Get(key[:]) == nil {
 			}
 		}
 		result.NonExistentMembershipTime = time.Since(start)
+		// 5. 임의 (캐시된 데이터)
+		start = time.Now()
+		for _, key := range randKeys {
+			_ = b.Get(key[:])
+		}
+		result.RandCachedReadTime = time.Since(start)
+		start = time.Now()
+		for _, key := range randKeys {
+			if b.Get(key[:]) != nil {
+			}
+		}
+		result.RandCachedMembershipTime = time.Since(start)
 		return nil
 	})
 	return result, nil
 }
 
-// (★★★★★ 최종 수정된 함수 ★★★★★)
 func runBadgerBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][keySize]byte, randKeys [][keySize]byte, nonExistentKeys [][keySize]byte) (BenchmarkResult, error) {
 	fmt.Println("\n--- BadgerDB 벤치마크 시작 ---")
 	os.RemoveAll(badgerDir)
@@ -168,7 +181,6 @@ func runBadgerBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][key
 		}
 		itRead.Close()
 		result.SeqExistingReadTime = time.Since(start)
-
 		mem_opts := badger.DefaultIteratorOptions
 		mem_opts.PrefetchValues = false
 		start = time.Now()
@@ -180,7 +192,6 @@ func runBadgerBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][key
 		}
 		itMem.Close()
 		result.SeqExistingMembershipTime = time.Since(start)
-
 		// 3. 임의 (있는 데이터)
 		start = time.Now()
 		for _, key := range randKeys {
@@ -194,13 +205,25 @@ func runBadgerBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][key
 			_, _ = txn.Get(key[:])
 		}
 		result.RandExistingMembershipTime = time.Since(start)
-
 		// 4. 임의 (없는 데이터)
 		start = time.Now()
 		for _, key := range nonExistentKeys {
 			_, _ = txn.Get(key[:])
 		}
 		result.NonExistentMembershipTime = time.Since(start)
+		// 5. 임의 (캐시된 데이터)
+		start = time.Now()
+		for _, key := range randKeys {
+			if item, err := txn.Get(key[:]); err == nil {
+				_, _ = item.ValueCopy(nil)
+			}
+		}
+		result.RandCachedReadTime = time.Since(start)
+		start = time.Now()
+		for _, key := range randKeys {
+			_, _ = txn.Get(key[:])
+		}
+		result.RandCachedMembershipTime = time.Since(start)
 		return nil
 	})
 	return result, nil
@@ -226,6 +249,7 @@ func runPebbleBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][key
 	defer db.Close()
 	result.DBSize, _ = getDirSize(pebbleDir)
 
+	// 2. 순차 (있는 데이터)
 	start = time.Now()
 	itRead, _ := db.NewIter(&pebble.IterOptions{})
 	count := 0
@@ -244,7 +268,7 @@ func runPebbleBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][key
 	}
 	itMem.Close()
 	result.SeqExistingMembershipTime = time.Since(start)
-
+	// 3. 임의 (있는 데이터)
 	start = time.Now()
 	for _, key := range randKeys {
 		val, closer, err := db.Get(key[:])
@@ -262,7 +286,7 @@ func runPebbleBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][key
 		}
 	}
 	result.RandExistingMembershipTime = time.Since(start)
-
+	// 4. 임의 (없는 데이터)
 	start = time.Now()
 	for _, key := range nonExistentKeys {
 		_, closer, err := db.Get(key[:])
@@ -271,6 +295,24 @@ func runPebbleBenchmark(keys [][keySize]byte, values [][]byte, latestKeys [][key
 		}
 	}
 	result.NonExistentMembershipTime = time.Since(start)
+	// 5. 임의 (캐시된 데이터)
+	start = time.Now()
+	for _, key := range randKeys {
+		val, closer, err := db.Get(key[:])
+		if err == nil {
+			_ = val
+			closer.Close()
+		}
+	}
+	result.RandCachedReadTime = time.Since(start)
+	start = time.Now()
+	for _, key := range randKeys {
+		_, closer, err := db.Get(key[:])
+		if err == nil {
+			closer.Close()
+		}
+	}
+	result.RandCachedMembershipTime = time.Since(start)
 
 	return result, nil
 }
@@ -304,5 +346,8 @@ func printResults(results []BenchmarkResult) {
 	fmt.Printf("%-32s | %-18v | %-18v | %-18v\n", "멤버십 확인", results[0].RandExistingMembershipTime.Round(time.Microsecond), results[1].RandExistingMembershipTime.Round(time.Microsecond), results[2].RandExistingMembershipTime.Round(time.Microsecond))
 	fmt.Println("-------------------------------------- [4. 임의 접근 (없는 데이터)] -------------------------------------------------")
 	fmt.Printf("%-32s | %-18v | %-18v | %-18v\n", "멤버십 확인", results[0].NonExistentMembershipTime.Round(time.Microsecond), results[1].NonExistentMembershipTime.Round(time.Microsecond), results[2].NonExistentMembershipTime.Round(time.Microsecond))
+	fmt.Println("-------------------------------------- [5. 임의 접근 (캐시된 데이터)] -------------------------------------------------")
+	fmt.Printf("%-32s | %-18v | %-18v | %-18v\n", "읽기 (캐시됨)", results[0].RandCachedReadTime.Round(time.Microsecond), results[1].RandCachedReadTime.Round(time.Microsecond), results[2].RandCachedReadTime.Round(time.Microsecond))
+	fmt.Printf("%-32s | %-18v | %-18v | %-18v\n", "멤버십 확인 (캐시됨)", results[0].RandCachedMembershipTime.Round(time.Microsecond), results[1].RandCachedMembershipTime.Round(time.Microsecond), results[2].RandCachedMembershipTime.Round(time.Microsecond))
 	fmt.Println("==================================================================================================================")
 }
