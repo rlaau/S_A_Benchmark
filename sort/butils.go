@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -26,10 +28,18 @@ type BenchmarkResult struct {
 
 // SystemStats 시스템 통계를 위한 구조체
 type SystemStats struct {
-	startTime time.Time
-	startMem  runtime.MemStats
-	endMem    runtime.MemStats
+	startTime      time.Time
+	startMem       runtime.MemStats
+	endMem         runtime.MemStats
+	startGoroutine int
 }
+
+var (
+	measureGoroutinesActive atomic.Bool
+	measureBaseGoroutines   atomic.Int64
+	measureActiveGoroutines atomic.Int64
+	measurePeakGoroutines   atomic.Int64
+)
 
 // generateRandomData 최적화된 랜덤 데이터 생성
 func generateRandomData(size int) []int {
@@ -127,14 +137,21 @@ func startStats() *SystemStats {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 
+	startGoroutines := runtime.NumGoroutine()
+	measureBaseGoroutines.Store(int64(startGoroutines))
+	measureActiveGoroutines.Store(0)
+	measurePeakGoroutines.Store(int64(startGoroutines))
+	measureGoroutinesActive.Store(true)
+
 	return &SystemStats{
-		startTime: time.Now(),
-		startMem:  m,
+		startTime:      time.Now(),
+		startMem:       m,
+		startGoroutine: startGoroutines,
 	}
 }
 
 // endStats 최적화된 성능 측정 종료
-func (s *SystemStats) endStats() (time.Duration, uint64, float64) {
+func (s *SystemStats) endStats() (time.Duration, uint64, float64, int) {
 	duration := time.Since(s.startTime)
 
 	runtime.GC() // 측정 전 GC
@@ -147,13 +164,82 @@ func (s *SystemStats) endStats() (time.Duration, uint64, float64) {
 		memUsage += (s.endMem.Mallocs - s.startMem.Mallocs) * 16
 	}
 
-	// CPU 사용률 개선된 계산
-	cpuUsage := float64(runtime.NumGoroutine()) / float64(runtime.NumCPU()) * 50 // 더 현실적인 값
+	peakGoroutines := s.endGoroutineMeasurement()
+
+	// 실제 CPU 사용률은 OS별 프로세스 CPU 시간을 읽어야 정확하다.
+	// 여기서는 병렬 작업의 고루틴 피크를 CPU 코어 수 대비로 환산한 지표로 유지한다.
+	cpuUsage := float64(peakGoroutines) / float64(runtime.NumCPU()) * 100
 	if cpuUsage > 100 {
 		cpuUsage = 100
 	}
 
-	return duration, memUsage, cpuUsage
+	return duration, memUsage, cpuUsage, peakGoroutines
+}
+
+func (s *SystemStats) endGoroutineMeasurement() int {
+	measureGoroutinesActive.Store(false)
+	recordGoroutinePeak()
+
+	peak := int(measurePeakGoroutines.Load())
+	if peak < s.startGoroutine {
+		return s.startGoroutine
+	}
+	return peak
+}
+
+func tryRunMeasuredGoroutine(wg *sync.WaitGroup, fn func()) bool {
+	select {
+	case workerPool <- struct{}{}:
+	default:
+		return false
+	}
+
+	wg.Add(1)
+	startMeasuredGoroutine()
+	go func() {
+		defer wg.Done()
+		defer finishMeasuredGoroutine()
+		defer func() { <-workerPool }()
+		fn()
+	}()
+	return true
+}
+
+func startMeasuredGoroutine() {
+	if !measureGoroutinesActive.Load() {
+		return
+	}
+
+	active := measureActiveGoroutines.Add(1)
+	recordGoroutinePeakValue(measureBaseGoroutines.Load() + active)
+}
+
+func finishMeasuredGoroutine() {
+	if !measureGoroutinesActive.Load() {
+		return
+	}
+
+	measureActiveGoroutines.Add(-1)
+	recordGoroutinePeak()
+}
+
+func recordGoroutinePeak() {
+	runtimeGoroutines := int64(runtime.NumGoroutine())
+	activeGoroutines := measureBaseGoroutines.Load() + measureActiveGoroutines.Load()
+	if activeGoroutines > runtimeGoroutines {
+		recordGoroutinePeakValue(activeGoroutines)
+		return
+	}
+	recordGoroutinePeakValue(runtimeGoroutines)
+}
+
+func recordGoroutinePeakValue(value int64) {
+	for {
+		current := measurePeakGoroutines.Load()
+		if value <= current || measurePeakGoroutines.CompareAndSwap(current, value) {
+			return
+		}
+	}
 }
 
 // runBenchmark 최적화된 벤치마크 실행
@@ -161,7 +247,6 @@ func runBenchmark(algorithm string, data []int, isFileMode bool) BenchmarkResult
 	var result BenchmarkResult
 	result.Algorithm = algorithm
 	result.DataSize = len(data)
-	result.GoroutineNum = runtime.NumGoroutine()
 
 	if isFileMode {
 		result.StorageType = "file"
@@ -193,18 +278,27 @@ func runBenchmark(algorithm string, data []int, isFileMode bool) BenchmarkResult
 		copy(testData, sorted)
 	}
 
-	duration, memUsage, cpuUsage := stats.endStats()
+	duration, memUsage, cpuUsage, peakGoroutines := stats.endStats()
 
 	result.Duration = duration
 	result.MemoryUsage = memUsage
 	result.CPUUsage = cpuUsage
+	result.GoroutineNum = peakGoroutines
 
 	return result
 }
 
 // saveResultsToMarkdown 최적화된 마크다운 저장
 func saveResultsToMarkdown(results []BenchmarkResult) error {
-	file, err := os.Create("benchmark_results.md")
+	return saveResultsToMarkdownFile(results, "benchmark_results.md")
+}
+
+func saveResultsToResultText(results []BenchmarkResult) error {
+	return saveResultsToMarkdownFile(results, "result.txt")
+}
+
+func saveResultsToMarkdownFile(results []BenchmarkResult, filename string) error {
+	file, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
@@ -253,8 +347,8 @@ func saveResultsToMarkdown(results []BenchmarkResult) error {
 			builder.WriteString(fmt.Sprintf("## %s - %d개 데이터\n\n", storageNames[storage], size))
 
 			// 테이블 헤더
-			builder.WriteString("| 알고리즘 | 테스트 | 실행시간 | 메모리사용량 | CPU사용률 | 고루틴수 |\n")
-			builder.WriteString("|----------|--------|----------|--------------|-----------|----------|\n")
+			builder.WriteString("| 알고리즘 | 테스트 | 실행시간 | 메모리사용량 | CPU사용률 | 최대 고루틴수 |\n")
+			builder.WriteString("|----------|--------|----------|--------------|-----------|---------------|\n")
 
 			for _, algo := range algorithms {
 				for run := 1; run <= 3; run++ {
@@ -313,9 +407,65 @@ func saveResultsToMarkdown(results []BenchmarkResult) error {
 		}
 	}
 
+	builder.WriteString("## 직렬 대비 병렬 배속\n\n")
+	builder.WriteString("| 데이터 | 비교 | 직렬 평균 | 병렬 평균 | 배속 | 해석 |\n")
+	builder.WriteString("|--------|------|-----------|-----------|------|------|\n")
+
+	for _, size := range dataSizes {
+		for _, storage := range storageTypes {
+			if size == 100000 && storage == "memory" {
+				continue
+			}
+			if (size == 1000 || size == 10000) && storage == "file" {
+				continue
+			}
+
+			label := fmt.Sprintf("%s - %d개", storageNames[storage], size)
+			appendSpeedupRow(&builder, results, label, storage, size, "퀵소트", "quicksort", "병렬퀵소트", "parallel_quicksort")
+			appendSpeedupRow(&builder, results, label, storage, size, "머지소트", "mergesort", "병렬머지소트", "parallel_mergesort")
+		}
+	}
+	builder.WriteString("\n")
+
 	// 한 번에 쓰기
 	_, err = writer.WriteString(builder.String())
 	return err
+}
+
+func appendSpeedupRow(builder *strings.Builder, results []BenchmarkResult, label, storage string, size int, serialName, serialAlgo, parallelName, parallelAlgo string) {
+	serialAvg, serialOK := averageDuration(results, serialAlgo, storage, size)
+	parallelAvg, parallelOK := averageDuration(results, parallelAlgo, storage, size)
+	if !serialOK || !parallelOK || parallelAvg <= 0 {
+		return
+	}
+
+	speedup := float64(serialAvg) / float64(parallelAvg)
+	interpretation := "직렬과 거의 동일"
+	if speedup >= 1.05 {
+		interpretation = fmt.Sprintf("병렬이 %.2f배 빠름", speedup)
+	} else if speedup <= 0.95 {
+		interpretation = fmt.Sprintf("병렬이 %.2f배 느림", 1/speedup)
+	}
+
+	builder.WriteString(fmt.Sprintf("| %s | %s -> %s | %v | %v | %.2fx | %s |\n",
+		label, serialName, parallelName, serialAvg, parallelAvg, speedup, interpretation))
+}
+
+func averageDuration(results []BenchmarkResult, algorithm, storage string, size int) (time.Duration, bool) {
+	var total time.Duration
+	count := 0
+
+	for _, result := range results {
+		if result.Algorithm == algorithm && result.StorageType == storage && result.DataSize == size {
+			total += result.Duration
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 0, false
+	}
+	return total / time.Duration(count), true
 }
 
 // saveResultsToJSON 최적화된 JSON 저장

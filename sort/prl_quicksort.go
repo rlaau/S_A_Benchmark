@@ -30,37 +30,21 @@ func parallelQuickSortHelper(arr []int, low, high, depth int) {
 		// 3-way 파티셔닝 사용
 		lt, gt := partition3Way(arr, low, high)
 
-		// ✅ 수정: 각 고루틴이 독립적으로 워커 풀 관리
 		var wg sync.WaitGroup
-		wg.Add(2)
 
 		// 첫 번째 고루틴 - 왼쪽 부분
-		go func() {
-			defer wg.Done()
-
-			select {
-			case workerPool <- struct{}{}: // 슬롯 획득 시도
-				defer func() { <-workerPool }() // ✅ 확실히 반환
-				parallelQuickSortHelper(arr, low, lt-1, depth/2)
-			default:
-				// 슬롯 없으면 순차 처리
-				quickSortHelper(arr, low, lt-1)
-			}
-		}()
+		if !tryRunMeasuredGoroutine(&wg, func() {
+			parallelQuickSortHelper(arr, low, lt-1, depth/2)
+		}) {
+			quickSortHelper(arr, low, lt-1)
+		}
 
 		// 두 번째 고루틴 - 오른쪽 부분
-		go func() {
-			defer wg.Done()
-
-			select {
-			case workerPool <- struct{}{}: // 슬롯 획득 시도
-				defer func() { <-workerPool }() // ✅ 확실히 반환
-				parallelQuickSortHelper(arr, gt+1, high, depth/2)
-			default:
-				// 슬롯 없으면 순차 처리
-				quickSortHelper(arr, gt+1, high)
-			}
-		}()
+		if !tryRunMeasuredGoroutine(&wg, func() {
+			parallelQuickSortHelper(arr, gt+1, high, depth/2)
+		}) {
+			quickSortHelper(arr, gt+1, high)
+		}
 
 		wg.Wait()
 	}

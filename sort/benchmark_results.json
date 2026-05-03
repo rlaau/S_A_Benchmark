@@ -4,9 +4,9 @@
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 1,
-    "duration": 65631,
-    "memory_usage_bytes": 12304,
-    "cpu_usage_percent": 3.125,
+    "duration": 85657,
+    "memory_usage_bytes": 17880,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -14,9 +14,9 @@
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 2,
-    "duration": 65898,
-    "memory_usage_bytes": 12416,
-    "cpu_usage_percent": 3.125,
+    "duration": 194679,
+    "memory_usage_bytes": 17880,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -24,9 +24,9 @@
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 3,
-    "duration": 73457,
-    "memory_usage_bytes": 12416,
-    "cpu_usage_percent": 3.125,
+    "duration": 121921,
+    "memory_usage_bytes": 12432,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -34,39 +34,39 @@
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 1,
-    "duration": 207677,
-    "memory_usage_bytes": 15616,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 252035,
+    "memory_usage_bytes": 16496,
+    "cpu_usage_percent": 43.75,
+    "goroutine_num": 7
   },
   {
     "algorithm": "parallel_quicksort",
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 2,
-    "duration": 124680,
-    "memory_usage_bytes": 14224,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 133984,
+    "memory_usage_bytes": 13392,
+    "cpu_usage_percent": 37.5,
+    "goroutine_num": 6
   },
   {
     "algorithm": "parallel_quicksort",
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 3,
-    "duration": 131690,
-    "memory_usage_bytes": 15920,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 217707,
+    "memory_usage_bytes": 15504,
+    "cpu_usage_percent": 37.5,
+    "goroutine_num": 6
   },
   {
     "algorithm": "mergesort",
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 1,
-    "duration": 105381,
+    "duration": 182506,
     "memory_usage_bytes": 71680,
-    "cpu_usage_percent": 3.125,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -74,19 +74,19 @@
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 2,
-    "duration": 131648,
+    "duration": 133638,
+    "memory_usage_bytes": 71808,
+    "cpu_usage_percent": 6.25,
+    "goroutine_num": 1
+  },
+  {
+    "algorithm": "mergesort",
+    "data_size": 1000,
+    "storage_type": "memory",
+    "test_run": 3,
+    "duration": 165639,
     "memory_usage_bytes": 71680,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
-  },
-  {
-    "algorithm": "mergesort",
-    "data_size": 1000,
-    "storage_type": "memory",
-    "test_run": 3,
-    "duration": 108682,
-    "memory_usage_bytes": 71680,
-    "cpu_usage_percent": 3.125,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -94,39 +94,39 @@
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 1,
-    "duration": 283979,
-    "memory_usage_bytes": 83632,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 474099,
+    "memory_usage_bytes": 83584,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "parallel_mergesort",
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 2,
-    "duration": 215835,
-    "memory_usage_bytes": 81408,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 317821,
+    "memory_usage_bytes": 80216,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "parallel_mergesort",
     "data_size": 1000,
     "storage_type": "memory",
     "test_run": 3,
-    "duration": 126112,
-    "memory_usage_bytes": 83504,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 243528,
+    "memory_usage_bytes": 79824,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "quicksort",
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 1,
-    "duration": 704019,
+    "duration": 1674135,
     "memory_usage_bytes": 12304,
-    "cpu_usage_percent": 3.125,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -134,9 +134,9 @@
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 2,
-    "duration": 771492,
-    "memory_usage_bytes": 12304,
-    "cpu_usage_percent": 3.125,
+    "duration": 1300940,
+    "memory_usage_bytes": 12432,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -144,9 +144,9 @@
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 3,
-    "duration": 683310,
+    "duration": 1509901,
     "memory_usage_bytes": 12304,
-    "cpu_usage_percent": 3.125,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -154,39 +154,39 @@
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 1,
-    "duration": 475125,
-    "memory_usage_bytes": 15072,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 957721,
+    "memory_usage_bytes": 15008,
+    "cpu_usage_percent": 87.5,
+    "goroutine_num": 14
   },
   {
     "algorithm": "parallel_quicksort",
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 2,
-    "duration": 484922,
-    "memory_usage_bytes": 14032,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 853914,
+    "memory_usage_bytes": 15248,
+    "cpu_usage_percent": 93.75,
+    "goroutine_num": 15
   },
   {
     "algorithm": "parallel_quicksort",
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 3,
-    "duration": 391280,
-    "memory_usage_bytes": 16816,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 817940,
+    "memory_usage_bytes": 19984,
+    "cpu_usage_percent": 68.75,
+    "goroutine_num": 11
   },
   {
     "algorithm": "mergesort",
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 1,
-    "duration": 1332342,
+    "duration": 1398872,
     "memory_usage_bytes": 954368,
-    "cpu_usage_percent": 3.125,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -194,9 +194,9 @@
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 2,
-    "duration": 1363898,
+    "duration": 1535819,
     "memory_usage_bytes": 954368,
-    "cpu_usage_percent": 3.125,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -204,9 +204,9 @@
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 3,
-    "duration": 1230992,
+    "duration": 2715451,
     "memory_usage_bytes": 954368,
-    "cpu_usage_percent": 3.125,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -214,39 +214,39 @@
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 1,
-    "duration": 597140,
-    "memory_usage_bytes": 968368,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 1636795,
+    "memory_usage_bytes": 963984,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "parallel_mergesort",
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 2,
-    "duration": 761424,
-    "memory_usage_bytes": 960640,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 1559239,
+    "memory_usage_bytes": 961184,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "parallel_mergesort",
     "data_size": 10000,
     "storage_type": "memory",
     "test_run": 3,
-    "duration": 813982,
-    "memory_usage_bytes": 964112,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 1481325,
+    "memory_usage_bytes": 964032,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "quicksort",
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 1,
-    "duration": 7832445,
-    "memory_usage_bytes": 12304,
-    "cpu_usage_percent": 3.125,
+    "duration": 10041542,
+    "memory_usage_bytes": 12432,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -254,9 +254,9 @@
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 2,
-    "duration": 8148494,
-    "memory_usage_bytes": 12304,
-    "cpu_usage_percent": 3.125,
+    "duration": 20643787,
+    "memory_usage_bytes": 12560,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -264,9 +264,9 @@
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 3,
-    "duration": 8229429,
+    "duration": 8638017,
     "memory_usage_bytes": 12304,
-    "cpu_usage_percent": 3.125,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -274,39 +274,39 @@
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 1,
-    "duration": 3889257,
-    "memory_usage_bytes": 14992,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 8229287,
+    "memory_usage_bytes": 19632,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "parallel_quicksort",
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 2,
-    "duration": 4267956,
-    "memory_usage_bytes": 14992,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 7578812,
+    "memory_usage_bytes": 21632,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "parallel_quicksort",
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 3,
-    "duration": 3923601,
-    "memory_usage_bytes": 14992,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 7801710,
+    "memory_usage_bytes": 19560,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "mergesort",
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 1,
-    "duration": 13914873,
-    "memory_usage_bytes": 12167168,
-    "cpu_usage_percent": 3.125,
+    "duration": 22164925,
+    "memory_usage_bytes": 12167936,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -314,9 +314,9 @@
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 2,
-    "duration": 12485018,
-    "memory_usage_bytes": 12167168,
-    "cpu_usage_percent": 3.125,
+    "duration": 24788194,
+    "memory_usage_bytes": 12168448,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -324,9 +324,9 @@
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 3,
-    "duration": 16896171,
-    "memory_usage_bytes": 12167168,
-    "cpu_usage_percent": 3.125,
+    "duration": 15809999,
+    "memory_usage_bytes": 12167424,
+    "cpu_usage_percent": 6.25,
     "goroutine_num": 1
   },
   {
@@ -334,29 +334,29 @@
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 1,
-    "duration": 15894411,
-    "memory_usage_bytes": 12177168,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 13181621,
+    "memory_usage_bytes": 12172368,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "parallel_mergesort",
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 2,
-    "duration": 5522981,
-    "memory_usage_bytes": 12170896,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 10824857,
+    "memory_usage_bytes": 12173832,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   },
   {
     "algorithm": "parallel_mergesort",
     "data_size": 100000,
     "storage_type": "file",
     "test_run": 3,
-    "duration": 6543005,
-    "memory_usage_bytes": 12173408,
-    "cpu_usage_percent": 3.125,
-    "goroutine_num": 1
+    "duration": 13404716,
+    "memory_usage_bytes": 12181872,
+    "cpu_usage_percent": 100,
+    "goroutine_num": 17
   }
 ]

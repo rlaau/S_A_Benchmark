@@ -84,6 +84,12 @@ func main() {
 		fmt.Println("benchmark_results.md 파일이 생성되었습니다.")
 	}
 
+	if err := saveResultsToResultText(allResults); err != nil {
+		fmt.Printf("result.txt 저장 오류: %v\n", err)
+	} else {
+		fmt.Println("result.txt 파일이 생성되었습니다.")
+	}
+
 	if err := saveResultsToJSON(allResults); err != nil {
 		fmt.Printf("JSON 저장 오류: %v\n", err)
 	} else {

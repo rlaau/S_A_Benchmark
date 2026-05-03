@@ -27,37 +27,21 @@ func parallelMergeSortHelper(arr []int, depth int) []int {
 	mid := len(arr) / 2
 	var left, right []int
 
-	// ✅ 수정: 각 고루틴이 독립적으로 워커 풀 관리
 	var wg sync.WaitGroup
-	wg.Add(2)
 
 	// 첫 번째 고루틴 - 왼쪽 부분
-	go func() {
-		defer wg.Done()
-
-		select {
-		case workerPool <- struct{}{}: // 슬롯 획득 시도
-			defer func() { <-workerPool }() // ✅ 확실히 반환
-			left = parallelMergeSortHelper(arr[:mid], depth/2)
-		default:
-			// 슬롯 없으면 순차 처리
-			left = mergeSort(arr[:mid])
-		}
-	}()
+	if !tryRunMeasuredGoroutine(&wg, func() {
+		left = parallelMergeSortHelper(arr[:mid], depth/2)
+	}) {
+		left = mergeSort(arr[:mid])
+	}
 
 	// 두 번째 고루틴 - 오른쪽 부분
-	go func() {
-		defer wg.Done()
-
-		select {
-		case workerPool <- struct{}{}: // 슬롯 획득 시도
-			defer func() { <-workerPool }() // ✅ 확실히 반환
-			right = parallelMergeSortHelper(arr[mid:], depth/2)
-		default:
-			// 슬롯 없으면 순차 처리
-			right = mergeSort(arr[mid:])
-		}
-	}()
+	if !tryRunMeasuredGoroutine(&wg, func() {
+		right = parallelMergeSortHelper(arr[mid:], depth/2)
+	}) {
+		right = mergeSort(arr[mid:])
+	}
 
 	wg.Wait()
 	return merge(left, right)
